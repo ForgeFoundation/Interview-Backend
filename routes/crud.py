@@ -107,6 +107,19 @@ def create_answer( answer: models.CreateAnswer):
     db.refresh(db_answer)
     return db_answer
 
+def answer_to_answer_view(answer: models.Answer):
+    user = db.query(models.User).filter(models.User.firebaseid == answer.user_fid).first()
+    return models.ViewAnswer(
+        answer=answer.answer,
+        promptid=answer.promptid,
+        prompt_message=answer.prompt_message,
+        user_fid=answer.user_fid,
+        user_name=user.username
+    )
+
+def answers_to_answers_view(answers: List[models.Answer]):
+    return [answer_to_answer_view(answer) for answer in answers]
+
 @router.get(("/answer_public_by_prompt_id"), status_code=200)
 def get_answer(prompt_id: int):
     """
@@ -117,8 +130,8 @@ def get_answer(prompt_id: int):
         models.Answer.promptid == prompt_id,
         models.Answer.is_public == True
     ).all()
-
-    return answers
+    return answers_to_answers_view(answers)
+    
 
 @router.get(("/prev_answers"), status_code=200)
 def get_prev_answers(user_fid: str, prompt_message: str):
@@ -130,7 +143,7 @@ def get_prev_answers(user_fid: str, prompt_message: str):
         models.Answer.prompt_message == prompt_message
     ).all()
 
-    return answers
+    return answers_to_answers_view(answers)
 
 
 
