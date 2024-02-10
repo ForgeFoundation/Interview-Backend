@@ -3,7 +3,7 @@
 
 On Mac:
 
-``````
+```
 
 python3 -m venv sbu_env
 source sbu_env/bin/activate
