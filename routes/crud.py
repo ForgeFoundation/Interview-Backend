@@ -120,6 +120,18 @@ def get_answer(prompt_id: int):
 
     return answers
 
+@router.get(("/prev_answers"), status_code=200)
+def get_prev_answers(user_fid: str, prompt_message: str):
+    """
+    Retrieves previous answers from the user based on the prompt message.
+    """
+    answers = db.query(models.Answer).filter(
+        models.Answer.user_fid == user_fid,
+        models.Answer.prompt_message == prompt_message
+    ).all()
+
+    return answers
+
 
 
 
