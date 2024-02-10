@@ -1,11 +1,18 @@
-
-from ast import List
+from typing import List
 from fastapi import APIRouter, Query
 from datetime import datetime
+import openai
 from sqlalchemy import func, or_
 import random
 import models
 from database import SessionLocal
+
+from dotenv import load_dotenv
+import os
+
+load_dotenv()  # take environment variables from .env.
+openai_api_key = os.getenv("OPENAI_API_KEY")
+
 
 db = SessionLocal()
 
@@ -147,5 +154,62 @@ def get_prev_answers(user_fid: str, prompt_message: str):
 
 
 
+# Collections
+
+@router.post("/collection", status_code=201)
+def create_collection( collection: models.CreateCollection):
+    
+    db_collection = models.Collection(name=collection.name, description=collection.description)
+    db.add(db_collection)
+    db.commit()
+    db.refresh(db_collection)
+    return db_collection
+
+
+
+@router.post('/generate_questions', status_code=201)
+def generate_questions(generate_interview: models.question_generation_input):
+    
+    """
+    Generate a new different interview question based on this type of job.
+    """
+    openai.api_key = openai_api_key
+    completion = openai.completions.create(
+        model="gpt-3.5-turbo-instruct",
+        prompt="generate a new different interview question based on this type of job: " + str(generate_interview.dict()),
+        max_tokens=1000
+    )
+
+    return {"response": completion.choices[0].text.strip()}
+
+
+
+# @app.route("/generate_feedback", methods=["POST", "GET"])
+# def generate_feedback():
+#     data = request.json
+#     # question
+#     question = data["question"]
+#     # answer
+#     answer = data["answer"]
+#     # feedback
+#     feedback = openai.Completion.create(
+#         model="gpt-3.5-turbo-instruct",
+#         prompt="You are a coach. Give a feedback based on this " + question + " and this answer: " + answer,
+#         max_tokens=1000
+#     )
+
+
+@router.post('/generate_feedback', status_code=201)
+def generate_feedback(create_answer: models.CreateAnswer):
+    """
+    Generate feedback based on the question and the answer.
+    """
+    openai.api_key = openai_api_key
+    feedback = openai.completions.create(
+        model="gpt-3.5-turbo-instruct",
+        prompt="You are a coach. Give a feedback based on this " + create_answer.prompt_message + " and this answer: " + create_answer.answer,
+        max_tokens=1000
+    )
+    return {"response": feedback.choices[0].text.strip()}
 
 

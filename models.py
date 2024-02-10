@@ -116,6 +116,14 @@ class Collections(Base):
     image = Column(String, nullable=True)
     tags = Column(ARRAY(String), nullable=True)
 
+class CreateCollection(BaseModel):
+    label: str
+    description: str
+    image: str
+    tags: List[str]
+    class Config:
+        orm_mode = True
+
 class Tags(Base):
     __tablename__ = 'tags'
 
@@ -130,4 +138,17 @@ class Feedback(Base):
     answer_id = Column(Integer, ForeignKey('answers.id'), nullable=False)
     type = Column(String, nullable=False)
     message = Column(String, nullable=False)
-    timestamp = Column(DateTime, default=func.now(), nullable=False)
+    timestamp = Column(DateTime, default=func.now(), nullable=False)\
+    
+
+    
+# Expected schema
+class question_generation_input(BaseModel):
+    job_title: str
+    job_type: str
+    job_description: str
+    industry: str
+    location: str
+
+    class Config:
+        orm_mode = True
