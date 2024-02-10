@@ -92,7 +92,7 @@ class ViewAnswer(BaseModel):
     prompt_message: str
     user_fid: str
     user_name: str
-    
+
 
 class CreateAnswer(BaseModel):
     """
@@ -101,7 +101,6 @@ class CreateAnswer(BaseModel):
     answer: str
     user_fid: str
 
-    promptid: int
     prompt_message: str
     is_public: bool
     class Config:
