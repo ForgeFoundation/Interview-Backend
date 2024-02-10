@@ -31,7 +31,6 @@ class User(Base):
     last_active = Column(DateTime, default=func.now(), nullable=False)
 
 
-
 class CreateUser(BaseModel):
     firebaseid: str
     username: str
@@ -58,6 +57,16 @@ class Prompt(Base):
     description = Column(String, nullable=True)
     hint = Column(String, nullable=True)
 
+class CreatePrompt(BaseModel):
+
+    prompt: str
+    tags: List[str]
+    description: str
+    hint: str
+
+    class Config:
+        orm_mode = True
+
 class Answer(Base):
     __tablename__ = 'answers'
 
@@ -66,19 +75,37 @@ class Answer(Base):
 
     prompt_message = Column(String, nullable=False) # It could be assigned to an non idead prompt.
     promptid = Column(Integer, nullable=True)
-    
     user_fid = Column(String, nullable=True)
-
-    votes = Column(Integer, nullable=True)
-    how_confident = Column(Integer, nullable=True)
-
-
+    is_public = Column(Boolean, nullable=True, default=False)    
     
-    tags = Column(ARRAY(String), nullable=True)
+    # After iterations
+    votes = Column(Integer, nullable=False, default=0)
+    how_confident = Column(Integer, nullable=True)
     last_feedback_id = Column(Integer, nullable=True)
 
-    is_public = Column(Boolean, nullable=True)    
     timestamp = Column(DateTime, default=func.now(), nullable=False)
+
+
+class ViewAnswer(BaseModel):
+    answer: str
+    promptid: int
+    prompt_message: str
+    user_fid: str
+    user_name: str
+    
+
+class CreateAnswer(BaseModel):
+    """
+    Just for creating asnwer with no grading yet.
+    """
+    answer: str
+    user_fid: str
+
+    promptid: int
+    prompt_message: str
+    is_public: bool
+    class Config:
+        orm_mode = True
 
 
 class Collections(Base):

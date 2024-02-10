@@ -11,15 +11,15 @@ from sqlalchemy.ext.declarative import declarative_base
 from fastapi_crudrouter import SQLAlchemyCRUDRouter
 from fastapi.openapi.docs import get_swagger_ui_html
 
-from routes import utils, api, forumRoutes
+from routes import crud, utils
 
 
 
 
 app = FastAPI(
     docs_url=None,
-    title="Sase Project",
-    description='API for SASE Hackathon',
+    title="SBU2024 Interview API",
+    description='API For SBU2024 Interview Emulator',
     )
 
 Base = declarative_base()
@@ -32,16 +32,6 @@ def get_db():
     finally:
         session.close()
 
-
-
-# userRoutes = SQLAlchemyCRUDRouter(
-#     schema=models.ViewUser,
-#     db_model=models.User,
-#     prefix=models.User.__tablename__,
-#     create_schema=models.CreateUser,
-#     update_schema=models.CreateUser,
-#     db=get_db
-# )
 
 # app.include_router(userRoutes)
 
@@ -64,14 +54,13 @@ app.add_middleware(
 )
 
 app.include_router(utils.router)
-app.include_router(api.router)
-app.include_router(forumRoutes.router)
+app.include_router(crud.router)
 
 models.Base.metadata.create_all(bind=engine)
 
 @app.get("/")
 def index():
-    return { "message": "Welcome to api"}
+    return { "message": "Welcome to SBU Backend API"}
 
 if __name__ == "__main__":
     uvicorn.run(app, port=8080, host='0.0.0.0')
