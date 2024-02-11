@@ -33,6 +33,12 @@ def get_db():
         session.close()
 
 
+@app.get('/rollback')
+def rollback():
+    db = SessionLocal()
+    db.rollback()
+    return {"message": "Rollback Successful"}
+
 # app.include_router(userRoutes)
 
 @app.get("/docs", include_in_schema=False)

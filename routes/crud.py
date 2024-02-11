@@ -33,6 +33,9 @@ async def root():
 @router.post("/sign_user", status_code=201)
 def sign_user( user: models.CreateUser):
     """Creates the user in the database if it does not exist. If it exists, it will update the last active time."""
+
+    # Rollback 
+    db.rollback()
     db_user = db.query(models.User).filter(models.User.firebaseid == user.firebaseid).first()
     if db_user:
         db_user.last_active = datetime.now()
@@ -262,5 +265,87 @@ def generate_feedback(create_answer: models.CreateAnswer):
     )
     response = feedback.choices[0].message.content
     return {"response": response}
+
+# Profile Report
+
+@router.get('/recent_answers', status_code=200)
+def recent_answers(user_fid: str, limit: int = 20):
+    """
+    Retrieves the recent answers from the user.
+
+    
+        query = text(
+            
+            SELECT a.prompt_message, a.timestamp
+            FROM (
+                SELECT prompt_message, MAX(timestamp) AS timestamp
+                FROM answers
+                WHERE user_fid = :user_fid
+                GROUP BY prompt_message
+            ) AS latest_answers
+            INNER JOIN answers AS a
+            ON latest_answers.prompt_message = a.prompt_message
+            AND latest_answers.timestamp = a.timestamp;
+            
+        )
+
+        answers = db.execute(query, {'user_fid': user_fid}).all()
+        print('====================')
+    """
+    try:
+        answers = db.query(models.Answer).filter(
+            models.Answer.user_fid == user_fid
+        ).order_by(models.Answer.timestamp.desc()).limit(limit).all()
+
+
+
+        if not answers:
+            return []
+
+        return answers
+    except Exception as e:
+        print(e)
+        return []
+
+@router.get('/heatmap_activity', status_code=200)
+def heatmap_activity(user_fid: str):
+    """
+    Retrieves the heatmap activity from the user. n the format of:
+    { date: '2024-01-01', count: 12 },
+    { date: '2024-01-22', count: 122 },
+    { date: '2024-01-30', count: 38 },
+    {
+        date: '2024-02-11',
+        count: 12
+    },
+    {
+        date: '2024-02-12',
+        count: 1
+    }
+
+    Using saved responses.
+    """
+    answers = db.query(models.Answer).filter(
+        models.Answer.user_fid == user_fid
+    ).all()
+
+    if not answers or len(answers) == 0:
+        return []
+    
+    
+    # Convert to the format of the heatmap.
+    res_dict = {} # { date: '2024-01-01', count: 12 }
+    for answer in answers:
+        
+        date_string = answer.timestamp.strftime("%Y-%m-%d")
+        if date_string in res_dict:
+            res_dict[date_string] += 1
+        else:
+            res_dict[date_string] = 1
+    res_list = []
+    for key, value in res_dict.items():
+        res_list.append({"date": key, "count": value})
+
+    return res_list
 
 

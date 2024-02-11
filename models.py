@@ -77,7 +77,8 @@ class Answer(Base):
     prompt_message = Column(String, nullable=False) # It could be assigned to an non idead prompt.
     promptid = Column(Integer, nullable=True)
     user_fid = Column(String, nullable=True)
-    is_public = Column(Boolean, nullable=True, default=False)    
+    is_public = Column(Boolean, nullable=True, default=False)
+    is_favorite = Column(Boolean, nullable=True, default=False)
     
     # After iterations
     votes = Column(Integer, nullable=False, default=0)
