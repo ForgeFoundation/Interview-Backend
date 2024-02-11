@@ -10,8 +10,9 @@ from database import SessionLocal
 from dotenv import load_dotenv
 import os
 
+
 load_dotenv()  # take environment variables from .env.
-openai_api_key = os.getenv("OPENAI_API_KEY")
+openai_api_key = os.getenv("OPENAI_API_KEY2")
 
 
 db = SessionLocal()
@@ -80,8 +81,11 @@ def get_prompt(prompt_id: int):
     return db.query(models.Prompt).filter(models.Prompt.id == prompt_id).first()
 
 @router.get(("/prompts"), status_code=200)
-def get_prompts():
-    return db.query(models.Prompt).all()
+def get_prompts(collection_id: int = Query(None)):
+    if collection_id:
+        return db.query(models.Prompt).filter(models.Prompt.collection_id == collection_id).all()
+    else:
+        return db.query(models.Prompt).all()
 
 
 
@@ -158,15 +162,15 @@ def get_prev_answers(prev_answers: SchemaPrevAnswers):
     """
     Retrieves previous answers from the user based on the prompt message.
     """
+    
+    print('called with', prev_answers.dict())
     answers = db.query(models.Answer).filter(
         models.Answer.user_fid == prev_answers.user_fid
     ).filter(
         models.Answer.prompt_message == prev_answers.prompt_message
     ).all()
-
-
-
-    print("qeuried answers", answers)
+    print(answers)
+    
 
     return answers_to_answers_view(answers)
 
@@ -244,11 +248,11 @@ def generate_feedback(create_answer: models.CreateAnswer):
         messages=[
         {
             "role": "system",
-            "content": "You are an interview coach"
+            "content": "You are an interview coach. I provide me professional feedback for how I respond to the following question: " + create_answer.prompt_message 
         },
         {
             "role": "user",
-            "content": "This was the interviewer question" + create_answer.prompt_message + " and this is the answer I provided: " + create_answer.answer
+            "content": create_answer.answer
         }
     ],
     max_tokens=100  # Limit the response to 100 tokens
