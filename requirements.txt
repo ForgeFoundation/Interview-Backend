@@ -21,3 +21,4 @@ h11
 pycparser==2.21
 pydantic==1.8.2
 alembic
+openai
