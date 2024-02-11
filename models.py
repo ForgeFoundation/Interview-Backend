@@ -56,6 +56,7 @@ class Prompt(Base):
     tags = Column(ARRAY(String), nullable=True)
     description = Column(String, nullable=True)
     hint = Column(String, nullable=True)
+    collection_id = Column(Integer, nullable=True)
 
 class CreatePrompt(BaseModel):
 

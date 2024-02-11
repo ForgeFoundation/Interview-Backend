@@ -173,14 +173,28 @@ def generate_questions(generate_interview: models.question_generation_input):
     """
     Generate a new different interview question based on this type of job.
     """
+    print(generate_interview.dict())
     openai.api_key = openai_api_key
-    completion = openai.completions.create(
-        model="gpt-3.5-turbo-instruct",
-        prompt="generate a new different interview question based on this type of job: " + str(generate_interview.dict()),
-        max_tokens=1000
+    question = openai.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {
+                "role": "system",
+                "content": "You are an interviewer question maker"
+            },
+            {
+                "role": "user",
+                "content": "I am looking for a " + generate_interview.job_title + " position. Can you provide me with a question? "
+            }
+        ],        
+        max_tokens=100
     )
 
-    return {"response": completion.choices[0].text.strip()}
+    # Add the job title to the question bank
+    
+
+    response = question.choices[0].message.content
+    return response
 
 
 
@@ -193,7 +207,7 @@ def generate_questions(generate_interview: models.question_generation_input):
 #     answer = data["answer"]
 #     # feedback
 #     feedback = openai.Completion.create(
-#         model="gpt-3.5-turbo-instruct",
+#         model="gpt-3.5-turbo",
 #         prompt="You are a coach. Give a feedback based on this " + question + " and this answer: " + answer,
 #         max_tokens=1000
 #     )
@@ -204,12 +218,24 @@ def generate_feedback(create_answer: models.CreateAnswer):
     """
     Generate feedback based on the question and the answer.
     """
+
+    print(create_answer.dict())
     openai.api_key = openai_api_key
-    feedback = openai.completions.create(
-        model="gpt-3.5-turbo-instruct",
-        prompt="You are a coach. Give a feedback based on this " + create_answer.prompt_message + " and this answer: " + create_answer.answer,
-        max_tokens=1000
+    feedback = openai.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[
+        {
+            "role": "system",
+            "content": "You are an interview coach"
+        },
+        {
+            "role": "user",
+            "content": "This was the interviewer question" + create_answer.prompt_message + " and this is the answer I provided: " + create_answer.answer
+        }
+    ],
+    max_tokens=100  # Limit the response to 100 tokens
     )
-    return {"response": feedback.choices[0].text.strip()}
+    response = feedback.choices[0].message.content
+    return {"response": response}
 
 
