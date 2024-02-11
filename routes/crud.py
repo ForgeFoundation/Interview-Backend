@@ -297,12 +297,18 @@ def recent_answers(user_fid: str, limit: int = 20):
             models.Answer.user_fid == user_fid
         ).order_by(models.Answer.timestamp.desc()).limit(limit).all()
 
-
-
+        unique_answers = {} # prompt: timestamp
         if not answers:
             return []
+        for answer in answers:
+            if answer.prompt_message not in unique_answers:
+                unique_answers[answer.prompt_message] = answer.timestamp
 
-        return answers
+        unique_answers_list = []
+        for key, value in unique_answers.items():
+            unique_answers_list.append({"prompt_message": key, "timestamp": value})
+
+        return unique_answers_list
     except Exception as e:
         print(e)
         return []
