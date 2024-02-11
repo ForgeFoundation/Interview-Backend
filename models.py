@@ -68,6 +68,21 @@ class CreatePrompt(BaseModel):
     class Config:
         orm_mode = True
 
+
+class BookmarkPrompt(Base):
+    __tablename__ = 'bookmark_prompt'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_fid = Column(String, nullable=False)
+    prompt_message = Column(String, nullable=False)
+    timestamp = Column(DateTime, default=func.now(), nullable=False)
+
+class CreateBookmarkPrompt(BaseModel):
+    user_fid: str
+    prompt_message: str
+    class Config:
+        orm_mode = True
+
 class Answer(Base):
     __tablename__ = 'answers'
 
@@ -96,6 +111,10 @@ class ViewAnswer(BaseModel):
     user_name: str
     timestamp: datetime.datetime
 
+
+class FavoriteAnswer(BaseModel):
+    user_fid: str
+    answer_id: int
 
 class CreateAnswer(BaseModel):
     """

@@ -62,6 +62,7 @@ def create_prompt( prompt: models.CreatePrompt):
     db.refresh(db_prompt)
     return db_prompt
 
+
 @router.get(("/prompt_random"), status_code=200)
 def random_prompt(collection_id: int = Query(None), tag: str = Query(None)):
     """
@@ -89,8 +90,6 @@ def get_prompts(collection_id: int = Query(None)):
         return db.query(models.Prompt).filter(models.Prompt.collection_id == collection_id).all()
     else:
         return db.query(models.Prompt).all()
-
-
 
 # Answering Questions
 
@@ -353,5 +352,62 @@ def heatmap_activity(user_fid: str):
         res_list.append({"date": key, "count": value})
 
     return res_list
+
+
+# Favorite an answer. Answers have to be unique among their prompt_message and user_fid.
+@router.post('/toggle', status_code=201)
+def favorite_answer(favorite: models.FavoriteAnswer):
+    """
+    Favorite an answer.
+    """
+    db_answer = db.query(models.Answer).filter(
+        models.Answer.id == favorite.answer_id,
+        models.Answer.user_fid == favorite.user_fid
+    ).first()
+    if not db_answer:
+        return {"message": "Answer not found"}
+    db_answer.is_favorite = not db_answer.is_favorite
+    db.commit()
+    db.refresh(db_answer)
+
+    # Also turn off all others favorites if this is favorite
+
+    if db_answer.is_favorite:
+        db.query(models.Answer).filter(
+            models.Answer.prompt_message == db_answer.prompt_message,
+            models.Answer.user_fid == db_answer.user_fid
+        ).filter(models.Answer.id != db_answer.id).update({models.Answer.is_favorite: False})
+        db.commit()
+    return db_answer
+
+# Bookmarking a prompt
+@router.post('/bookmark', status_code=201)
+def bookmark(bookmark: models.CreateBookmarkPrompt):
+    """
+    Bookmark a prompt.
+    
+    """
+    db_bookmark = models.BookmarkPrompt(user_fid=bookmark.user_fid, prompt_message=bookmark.prompt_message,
+                                        timestamp=datetime.now())
+    db.add(db_bookmark)
+    db.commit()
+    db.refresh(db_bookmark)
+    return db_bookmark
+
+
+
+@router.get("/bookmarks", status_code=200)
+def user_bookmarks(user_fid: str):
+    """
+    Retrieves the bookmarks from the user.
+    Returns a list of bookmarks ['bookmark1']
+    """
+    bookmarks = db.query(models.BookmarkPrompt).filter(
+        models.BookmarkPrompt.user_fid == user_fid
+    ).all()
+    bookmarks = set([bookmark.prompt_message for bookmark in bookmarks])
+    print('fetching bookmarks', bookmarks)
+    print(bookmarks)
+    return list(bookmarks)
 
 
