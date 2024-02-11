@@ -54,7 +54,14 @@ def createPrompts(prompt: CreatePrompt):
     assert response.status_code == 201
     return response.json()
 
+def create_collection (collection: models.CreateCollection):
+    response = client.post("/crud/collection", json=collection.dict())
+    assert response.status_code == 201
+    return response.json()
 
 def test_create_prompts():
-    for prompt in promptsLists:
-        createPrompts(prompt)
+    # for prompt in promptsLists:
+    #     createPrompts(prompt)
+
+    fundamentals_collection = create_collection(models.CreateCollection(name="fundamentals", description="This is a collection of fundamental interview questions"))
+    
