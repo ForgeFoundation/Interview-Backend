@@ -181,7 +181,10 @@ def get_prev_answers(prev_answers: SchemaPrevAnswers):
 @router.post("/collection", status_code=201)
 def create_collection( collection: models.CreateCollection):
     
-    db_collection = models.Collection(name=collection.name, description=collection.description)
+    db_collection = models.Collections(
+        label = collection.label,
+        description = collection.description
+    )
     db.add(db_collection)
     db.commit()
     db.refresh(db_collection)

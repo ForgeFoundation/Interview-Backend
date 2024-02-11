@@ -121,8 +121,6 @@ class Collections(Base):
 class CreateCollection(BaseModel):
     label: str
     description: str
-    image: str
-    tags: List[str]
     class Config:
         orm_mode = True
 
