@@ -1,3 +1,5 @@
+.env
+*.env
 sbu_env/*
 .idea
 .ipynb_checkpoints
@@ -26,7 +28,6 @@ archive.zip
 *~
 .*.sw?
 .cache
-.env
 
 # macOS
 .DS_Store
