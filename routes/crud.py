@@ -29,8 +29,16 @@ async def root():
 
 
 
-@router.post("/create_user", status_code=201)
-def create_user( user: models.CreateUser):
+@router.post("/sign_user", status_code=201)
+def sign_user( user: models.CreateUser):
+    """Creates the user in the database if it does not exist. If it exists, it will update the last active time."""
+    db_user = db.query(models.User).filter(models.User.firebaseid == user.firebaseid).first()
+    if db_user:
+        db_user.last_active = datetime.now()
+        db.commit()
+        db.refresh(db_user)
+        return db_user
+
     db_user = models.User(firebaseid=user.firebaseid, username=user.username, email=user.email)
     db.add(db_user)
     db.commit()
@@ -98,6 +106,7 @@ def create_answer( answer: models.CreateAnswer):
     else:
         promptid = prompt_found.id
 
+    print("storing the following", promptid, answer.answer, answer.user_fid, answer.prompt_message, answer.is_public)
     db_answer = models.Answer(
         answer=answer.answer,
         user_fid=answer.user_fid,
@@ -121,7 +130,8 @@ def answer_to_answer_view(answer: models.Answer):
         promptid=answer.promptid,
         prompt_message=answer.prompt_message,
         user_fid=answer.user_fid,
-        user_name=user.username
+        user_name=user.username,
+        timestamp=answer.timestamp
     )
 
 def answers_to_answers_view(answers: List[models.Answer]):
@@ -139,16 +149,24 @@ def get_answer(prompt_id: int):
     ).all()
     return answers_to_answers_view(answers)
     
+class SchemaPrevAnswers(models.BaseModel):
+    user_fid: str
+    prompt_message: str
 
-@router.get(("/prev_answers"), status_code=200)
-def get_prev_answers(user_fid: str, prompt_message: str):
+@router.post(("/prev_answers"), status_code=200)
+def get_prev_answers(prev_answers: SchemaPrevAnswers):
     """
     Retrieves previous answers from the user based on the prompt message.
     """
     answers = db.query(models.Answer).filter(
-        models.Answer.user_fid == user_fid,
-        models.Answer.prompt_message == prompt_message
+        models.Answer.user_fid == prev_answers.user_fid
+    ).filter(
+        models.Answer.prompt_message == prev_answers.prompt_message
     ).all()
+
+
+
+    print("qeuried answers", answers)
 
     return answers_to_answers_view(answers)
 
@@ -191,7 +209,7 @@ def generate_questions(generate_interview: models.question_generation_input):
     )
 
     # Add the job title to the question bank
-    
+
 
     response = question.choices[0].message.content
     return response

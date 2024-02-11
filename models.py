@@ -93,6 +93,7 @@ class ViewAnswer(BaseModel):
     prompt_message: str
     user_fid: str
     user_name: str
+    timestamp: datetime.datetime
 
 
 class CreateAnswer(BaseModel):
